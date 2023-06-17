@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/1996Paul-Wen/SafetyBox/api"
 	"github.com/1996Paul-Wen/SafetyBox/config"
 	"github.com/1996Paul-Wen/SafetyBox/infrastructure/db"
 	logmanager "github.com/1996Paul-Wen/SafetyBox/infrastructure/log_manager"
@@ -15,7 +16,8 @@ import (
 
 var (
 	command string
-	logDir  string = "log"
+	// 日志目录
+	logDir string = "log"
 	// 配置文件地址
 	configFilePath string = "app_config.yml"
 )
@@ -26,11 +28,12 @@ func main() {
 	// 可执行文件所在路径
 	exePath, err := os.Executable()
 	if err != nil {
-		fmt.Println("get executable path failed, err:", err)
+		fmt.Println("failed to get executable path, err:", err)
 		os.Exit(1)
 	}
-	configFilePath = path.Join(path.Dir(exePath), configFilePath)
-	logDir = path.Join(path.Dir(exePath), logDir)
+	exeDir := path.Dir(exePath)
+	configFilePath = path.Join(exeDir, configFilePath)
+	logDir = path.Join(exeDir, logDir)
 
 	// 解析命令行参数
 	parseOption()
@@ -45,6 +48,8 @@ func main() {
 		err = MigrateTables()
 	case "drop_tables":
 		err = DropTables()
+	case "start_web_app":
+		err = StartWebAPP()
 	case "hello":
 		err = Hello()
 
@@ -61,7 +66,7 @@ func main() {
 func parseOption() {
 	flag.Usage = Usage
 	flag.StringVar(&configFilePath, "f", configFilePath, "Config File Path")
-	flag.StringVar(&logDir, "l", logDir, "Log File Path")
+	flag.StringVar(&logDir, "l", logDir, "Log File Directory")
 	flag.Parse()
 	command = flag.Arg(0)
 }
@@ -74,6 +79,7 @@ safetybox command [ options ]
 command : 
 	migrate_tables : 同步数据库表结构
 	drop_tables : 删除数据库表
+	start_web_app : 启动web应用
 `
 	fmt.Println(helpHeader)
 	flag.PrintDefaults()
@@ -132,6 +138,10 @@ func MigrateTables() error {
 
 func DropTables() error {
 	return db.DefaultDBManager().DropTables()
+}
+
+func StartWebAPP() error {
+	return api.StartWebServer()
 }
 
 func Hello() error {

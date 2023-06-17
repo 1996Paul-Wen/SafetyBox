@@ -4,14 +4,16 @@ import (
 	"path"
 	"time"
 
+	log "github.com/InVisionApp/go-logger"
+	lgrs "github.com/InVisionApp/go-logger/shims/logrus"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 )
 
 type logManager struct {
 	logDir     string // 日志文件的目录
-	gatewayLog *logrus.Logger
-	repoLog    *logrus.Logger
+	gatewayLog log.Logger
+	repoLog    log.Logger
 }
 
 func newLogManager() *logManager {
@@ -36,7 +38,7 @@ func Init(logDir string, isDebug bool) {
 }
 
 // createLogrusLogger 创建Logrus日志句柄
-func (l *logManager) createLogrusLogger(filename string, isDebug bool) (*logrus.Logger, error) {
+func (l *logManager) createLogrusLogger(filename string, isDebug bool) (log.Logger, error) {
 	writer, err := rotatelogs.New(
 		path.Join(l.logDir, filename+".%Y-%m-%d"),
 		rotatelogs.WithLinkName(path.Join(l.logDir, filename)),
@@ -57,13 +59,14 @@ func (l *logManager) createLogrusLogger(filename string, isDebug bool) (*logrus.
 		logrusLogger.SetLevel(logrus.DebugLevel)
 	}
 
-	return logrusLogger, nil
+	// logrusLogger是log接口的具体实现，再使用lgrs.New()将实现包装成interface
+	return lgrs.New(logrusLogger), nil
 }
 
-func (l *logManager) GatewayLog() *logrus.Logger {
+func (l *logManager) GatewayLog() log.Logger {
 	return l.gatewayLog
 }
 
-func (l *logManager) RepoLog() *logrus.Logger {
+func (l *logManager) RepoLog() log.Logger {
 	return l.repoLog
 }

@@ -6,4 +6,15 @@ Database:
   MaxIdleConns: 100
   ConnMaxIdleTime: 3600s
 
+AESKeyForUserLoginPWSalt: >-
+  abcdefgehjhijkmlkjjwwoew
+
 Debug: true
+
+# for web app use
+WebSettings:
+  Port: 8080
+
+  LimitSetting:
+    Burst: 10
+    Limit: 10

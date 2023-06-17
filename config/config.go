@@ -8,9 +8,10 @@ import (
 )
 
 type APPConfig struct {
-	Database                    DatabaseConfig `yaml:"Database"`
-	KeyToEncryptUserLoginPWSalt string         `yaml:"KeyToEncryptUserLoginPWSalt"`
-	Debug                       bool           `yaml:"Debug"`
+	Database                 DatabaseConfig `yaml:"Database"`
+	AESKeyForUserLoginPWSalt string         `yaml:"AESKeyForUserLoginPWSalt"`
+	Debug                    bool           `yaml:"Debug"`
+	WebSettings              WebSettings    `yaml:"WebSettings"`
 }
 
 type DatabaseConfig struct {
@@ -19,6 +20,16 @@ type DatabaseConfig struct {
 	MaxOpenConns      int           `yaml:"MaxOpenConns"`
 	MaxIdleConns      int           `yaml:"MaxIdleConns"`
 	ConnMaxIdleTime   time.Duration `yaml:"ConnMaxIdleTime"`
+}
+
+type WebSettings struct {
+	Port          int           `yaml:"Port"`
+	LimitSettings LimitSettings `yaml:"LimitSettings"`
+}
+
+type LimitSettings struct {
+	Limit float64 `yaml:"Limit"`
+	Burst float64 `yaml:"Burst"`
 }
 
 // new returns an empty config
