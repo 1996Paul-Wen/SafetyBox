@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/1996Paul-Wen/SafetyBox/config"
@@ -9,13 +8,10 @@ import (
 )
 
 func TestSyncDB(t *testing.T) {
-	globalConf := config.GlobalConfig()
-	globalConf.Init("../../bin/app_config.yml")
-	fmt.Printf("%+v\n", globalConf)
+	config.Init("../../bin/app_config.yml")
+	Init(config.GlobalConfig().Database, model.LoadModels())
 
 	dbManager := DefaultDBManager()
-	dbManager.Init(globalConf.Database, model.LoadModels())
-
 	dbManager.DropTables()
 	dbManager.MigrateTables()
 	dbManager.CleanTables()

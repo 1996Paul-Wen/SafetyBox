@@ -36,16 +36,8 @@ func main() {
 	parseOption()
 	validateCMDLineOption()
 
-	// 初始化全局配置
-	config.GlobalConfig().Init(configFilePath)
-	globalConfig := config.GlobalConfig()
-	fmt.Printf("using global config: %+v\n", globalConfig)
-
-	// 初始化logManager
-	logmanager.DefaultLogManager().Init(logDir, globalConfig.Debug)
-
-	// 初始化dbManager
-	db.DefaultDBManager().Init(globalConfig.Database, model.LoadModels())
+	// 初始化项目依赖
+	initDependenies(configFilePath, logDir)
 
 	fmt.Println("command : ", command)
 	switch command {
@@ -119,6 +111,19 @@ func validateLogDir() {
 			os.Exit(1)
 		}
 	}
+}
+
+func initDependenies(configFilePath, logDir string) {
+	// 初始化全局配置
+	config.Init(configFilePath)
+	globalConfig := config.GlobalConfig()
+	fmt.Printf("using global config: %+v\n", globalConfig)
+
+	// 初始化日志
+	logmanager.Init(logDir, globalConfig.Debug)
+
+	// 初始化数据库连接
+	db.Init(globalConfig.Database, model.LoadModels())
 }
 
 func MigrateTables() error {

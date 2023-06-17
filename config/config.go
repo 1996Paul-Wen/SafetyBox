@@ -26,8 +26,8 @@ func new() *APPConfig {
 	return &APPConfig{}
 }
 
-// Init should only be called once for a single APPConfig instance
-func (c *APPConfig) Init(appConfigFile string) {
+// Init should only be called once
+func Init(appConfigFile string) {
 	conf, err := os.ReadFile(appConfigFile)
 	if err != nil {
 		panic(err)
@@ -39,5 +39,5 @@ func (c *APPConfig) Init(appConfigFile string) {
 		panic(err)
 	}
 
-	*c = globalConfigContent
+	*globalConfig = globalConfigContent
 }

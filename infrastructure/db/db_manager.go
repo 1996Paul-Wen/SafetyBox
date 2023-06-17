@@ -26,11 +26,11 @@ func new() *dbManager {
 }
 
 // Init should only be called once for a single dbManager instance
-func (dbm *dbManager) Init(conf config.DatabaseConfig, tables []interface{}) {
-	dbm.config = conf
-	dbm.engine = newMySQLEngine(conf)
-	dbm.tables = tables
-	dbm.logger = log.NewSimple()
+func Init(conf config.DatabaseConfig, tables []interface{}) {
+	defaultDBManager.config = conf
+	defaultDBManager.engine = newMySQLEngine(conf)
+	defaultDBManager.tables = tables
+	defaultDBManager.logger = log.NewSimple()
 }
 
 func (dbManager *dbManager) GetEngine() *gorm.DB {

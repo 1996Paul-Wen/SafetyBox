@@ -18,21 +18,21 @@ func newLogManager() *logManager {
 	return &logManager{}
 }
 
-// Init should only be called once for a single logManager instance
-func (l *logManager) Init(logDir string, isDebug bool) {
-	l.logDir = logDir
+// Init should only be called once
+func Init(logDir string, isDebug bool) {
+	defaultLogManager.logDir = logDir
 
-	gatewayLog, err := l.createLogrusLogger("gateway.log", isDebug)
+	gatewayLog, err := defaultLogManager.createLogrusLogger("gateway.log", isDebug)
 	if err != nil {
 		panic(err)
 	}
-	l.gatewayLog = gatewayLog
+	defaultLogManager.gatewayLog = gatewayLog
 
-	repoLog, err := l.createLogrusLogger("repo.log", isDebug)
+	repoLog, err := defaultLogManager.createLogrusLogger("repo.log", isDebug)
 	if err != nil {
 		panic(err)
 	}
-	l.repoLog = repoLog
+	defaultLogManager.repoLog = repoLog
 }
 
 // createLogrusLogger 创建Logrus日志句柄
