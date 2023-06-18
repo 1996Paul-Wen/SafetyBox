@@ -45,11 +45,20 @@ func initRouter(app *gin.Engine, apiVersion string) {
 
 	app.GET("/ping", baseHandler.Pong)
 
-	// 注册用于处理业务逻辑的web handler
+	// 注册用于处理业务逻辑的 web handler
 	userHandler := handler.NewUserHandler(baseHandler)
-	apiGroup := app.Group("/api")
+	safetyDataHandler := handler.NewSafetyDataHandler(baseHandler)
+	handler.RegisterBusinessHandler(userHandler, safetyDataHandler)
+
+	// 需要用户身份验证的路由
+	apiGroupWithUserVerification := app.Group("/api", userHandler.VerifyUser)
+	// 无需用户身份验证的路由
+	apiGroupWithoutUserVerification := app.Group("/api")
 	{
-		userHandler.RegisterToRouteGroup(apiGroup)
+		for _, bsHandler := range handler.TotalBusinessHandlers() {
+			bsHandler.RegisterUserRequiredRoutersTo(apiGroupWithUserVerification)
+			bsHandler.RegisterNoUserRequiredRoutersTo(apiGroupWithoutUserVerification)
+		}
 	}
 
 }

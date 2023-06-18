@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var _ BusinessHandler = (*UserHandler)(nil)
+
 type UserHandler struct {
 	*BaseHandler
 }
@@ -16,17 +18,18 @@ func NewUserHandler(bh *BaseHandler) *UserHandler {
 	}
 }
 
-func (u *UserHandler) RegisterToRouteGroup(rg *gin.RouterGroup) {
-	userWithVerification := rg.Group("/User", u.VerifyUser)
+func (u *UserHandler) RegisterUserRequiredRoutersTo(rg *gin.RouterGroup) {
+	userWithVerification := rg.Group("/User")
 	{
 		userWithVerification.POST("Describe", u.DescribeUser)
 	}
+}
 
+func (u *UserHandler) RegisterNoUserRequiredRoutersTo(rg *gin.RouterGroup) {
 	userWithoutVerification := rg.Group("/User")
 	{
 		userWithoutVerification.POST("Create", u.CreateUser)
 	}
-
 }
 
 func (u *UserHandler) VerifyUser(c *gin.Context) {
@@ -36,13 +39,14 @@ func (u *UserHandler) VerifyUser(c *gin.Context) {
 	tx := db.DefaultDBManager().BeginTransaction()
 	defer tx.Rollback()
 	userRepo := userrepo.NewUserRepoImpl(tx)
-	_, err := userRepo.VerifyUser(name, password)
+	userDetail, err := userRepo.VerifyUser(name, password)
 	if err != nil {
 		u.HandleFailedResponse(c, CodeUnauthorized, err)
 		return
 	}
 	tx.Commit()
 
+	c.Set(ContextKeys.UserModel, *&userDetail)
 }
 
 func (u *UserHandler) DescribeUser(c *gin.Context) {

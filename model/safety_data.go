@@ -13,11 +13,11 @@ type SafetyData struct {
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 
-	ArchiveKey          *string `gorm:"type:varchar(255);index;not null;default:''"` // such as username for xxx website
-	EncryptArchiveValue *string `gorm:"type:text;not null"`                          // such password for xxx website 注意：text类型字段不允许有默认值
+	ArchiveKey          *string `gorm:"type:varchar(255);unique;not null;default:''"` // such as username for xxx website
+	EncryptArchiveValue *string `gorm:"type:text;not null"`                           // such password for xxx website 注意：text类型字段不允许有默认值
 	Description         *string `gorm:"type:varchar(255);not null;default:''"`
-	UserID              uint64
-	User                User `json:"user" gorm:"foreignKey:UserID"`
+	UserID              uint    `gorm:"index;not null"`
+	User                User    `json:"user,omitempty" gorm:"foreignKey:UserID"`
 
 	// CreatedAt        time.Time `gorm:"column:created_at;type:TIMESTAMP;default:CURRENT_TIMESTAMP;<-:create"`
 	// UpdatedAt        time.Time `gorm:"column:updated_at;type:TIMESTAMP;default:CURRENT_TIMESTAMP  on update current_timestamp"`

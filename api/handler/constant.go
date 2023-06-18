@@ -4,10 +4,12 @@ package handler
 var ContextKeys = struct {
 	LoginUser string
 	Password  string
+	UserModel string
 	TraceID   string
 }{
 	LoginUser: "LoginUser",
 	Password:  "Password",
+	UserModel: "UserModel",
 	TraceID:   "TraceID",
 }
 
