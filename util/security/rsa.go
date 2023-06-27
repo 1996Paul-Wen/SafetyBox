@@ -66,11 +66,8 @@ func RSAEncrypt(publicKeyPath string, ciphertext []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	block, _ := pem.Decode(publicKeyFile)
-	if block == nil {
-		return nil, errors.New("parse publicKeyFile failed")
-	}
-	key, err := x509.ParsePKCS1PublicKey(block.Bytes)
+
+	key, err := ParseRSAPublicKey(publicKeyFile)
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +76,18 @@ func RSAEncrypt(publicKeyPath string, ciphertext []byte) ([]byte, error) {
 		return nil, err
 	}
 	return encryptedData, nil
+}
+
+func ParseRSAPublicKey(pubKey []byte) (*rsa.PublicKey, error) {
+	block, _ := pem.Decode(pubKey)
+	if block == nil {
+		return nil, errors.New("parse publicKey failed")
+	}
+	parsedKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return parsedKey, nil
 }
 
 // RSADecrypt RSA解密

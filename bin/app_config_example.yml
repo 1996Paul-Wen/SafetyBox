@@ -6,6 +6,7 @@ Database:
   MaxIdleConns: 100
   ConnMaxIdleTime: 3600s
 
+# 用于加密盐值的AESKey
 AESKeyForUserLoginPWSalt: >-
   abcdefgehjhijkmlkjjwwoew
 

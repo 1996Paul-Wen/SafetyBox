@@ -39,7 +39,7 @@ func main() {
 	parseOption()
 	validateCMDLineOption()
 
-	// 初始化项目依赖
+	// 初始化项目所有底层依赖 - key step
 	initDependenies(configFilePath, logDir)
 
 	fmt.Println("command : ", command)
@@ -77,6 +77,7 @@ func Usage() {
 Options:
 safetybox command [ options ]
 command : 
+    hello : 测试可执行文件
 	migrate_tables : 同步数据库表结构
 	drop_tables : 删除数据库表
 	start_web_app : 启动web应用
@@ -137,7 +138,11 @@ func MigrateTables() error {
 }
 
 func DropTables() error {
-	return db.DefaultDBManager().DropTables()
+	drop := YesNoPrompt("are you sure to drop tables?", false)
+	if drop {
+		return db.DefaultDBManager().DropTables()
+	}
+	return nil
 }
 
 func StartWebAPP() error {

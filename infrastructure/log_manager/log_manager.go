@@ -11,7 +11,9 @@ import (
 )
 
 type logManager struct {
-	logDir     string // 日志文件的目录
+	logDir string // 日志文件的目录
+
+	// 不同层次使用不同的log
 	gatewayLog log.Logger
 	repoLog    log.Logger
 }

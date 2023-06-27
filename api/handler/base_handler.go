@@ -2,12 +2,14 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/1996Paul-Wen/SafetyBox/api/proto"
+	"github.com/1996Paul-Wen/SafetyBox/infrastructure/constant"
 	"github.com/1996Paul-Wen/SafetyBox/util/ratelimit"
 	log "github.com/InVisionApp/go-logger"
 	"github.com/gin-gonic/gin"
@@ -84,10 +86,11 @@ func (h *BaseHandler) UnmarshalPost(c *gin.Context, v interface{}) error {
 
 // HandleSuccessResponse 发送成功数据
 func (h *BaseHandler) HandleSuccessResponse(c *gin.Context, data interface{}) {
+
 	rsp := proto.GeneralResponse{
 		Code:    CodeSuccess,
 		Data:    data,
-		TraceID: c.MustGet(ContextKeys.TraceID).(string),
+		TraceID: c.Request.Context().Value(constant.BasicContextKeys.TraceID).(string),
 	}
 	c.AbortWithStatusJSON(http.StatusOK, rsp)
 }
@@ -98,7 +101,7 @@ func (h *BaseHandler) HandleFailedResponse(c *gin.Context, errCode int, err erro
 	rsp := proto.GeneralResponse{
 		Code:    errCode,
 		Message: err.Error(),
-		TraceID: c.MustGet(ContextKeys.TraceID).(string),
+		TraceID: c.Request.Context().Value(constant.BasicContextKeys.TraceID).(string),
 	}
 	c.AbortWithStatusJSON(http.StatusOK, rsp)
 }
@@ -114,7 +117,11 @@ func (h *BaseHandler) SetTraceID(c *gin.Context) {
 	startTime := time.Now()
 	u4 := uuid.NewV4()
 	traceID := u4.String()
-	c.Set(ContextKeys.TraceID, traceID)
+
+	// generate a new context with traceID
+	ctx := context.WithValue(c.Request.Context(), constant.BasicContextKeys.TraceID, traceID)
+	c.Request = c.Request.WithContext(ctx)
+
 	msg := fmt.Sprintf("new request coming, set traceID : %s, request path : %s , method : %s ",
 		traceID, c.Request.URL.Path, c.Request.Method)
 	h.Info(msg)
@@ -134,20 +141,20 @@ func (h *BaseHandler) SetLoginUser(c *gin.Context) {
 	userName, nameOK := header["Username"]
 	passwd, passwdOK := header["Password"]
 	if !nameOK || len(userName) == 0 {
-		c.Set(ContextKeys.LoginUser, AnonymousUser.Name)
+		c.Set(GinContextKeys.LoginUser, AnonymousUser.Name)
 	} else {
-		c.Set(ContextKeys.LoginUser, userName[0])
+		c.Set(GinContextKeys.LoginUser, userName[0])
 	}
 	if !passwdOK || len(passwd) == 0 {
-		c.Set(ContextKeys.Password, AnonymousUser.Password)
+		c.Set(GinContextKeys.Password, AnonymousUser.Password)
 	} else {
-		c.Set(ContextKeys.Password, passwd[0])
+		c.Set(GinContextKeys.Password, passwd[0])
 	}
 }
 
 // ReqRateLimit 用户请求限流中间件
 func (h *BaseHandler) ReqRateLimit(c *gin.Context) {
-	if loginUser, ok := c.MustGet(ContextKeys.LoginUser).(string); ok {
+	if loginUser, ok := c.MustGet(GinContextKeys.LoginUser).(string); ok {
 		// savedCtx := c.Request.Context()
 		// defer func() {
 		// 	c.Request = c.Request.WithContext(savedCtx)

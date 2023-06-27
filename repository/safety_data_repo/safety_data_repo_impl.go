@@ -1,9 +1,12 @@
 package safetydatarepo
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/1996Paul-Wen/SafetyBox/infrastructure/constant"
 	"github.com/1996Paul-Wen/SafetyBox/model"
+	"github.com/1996Paul-Wen/SafetyBox/repository"
 	"github.com/1996Paul-Wen/SafetyBox/util/security"
 	"gorm.io/gorm"
 )
@@ -20,7 +23,7 @@ func NewSafetyDataRepoImpl(session *gorm.DB) *SafetyDataRepoImpl {
 	}
 }
 
-func (s *SafetyDataRepoImpl) List(filter Filter) (resp []model.SafetyData, err error) {
+func (s *SafetyDataRepoImpl) List(ctx context.Context, filter Filter) (resp []model.SafetyData, err error) {
 	session := s.session
 	// gorm `belongs to` 的关联查询 需要 Preload 关联模型
 	session = session.Preload("User")
@@ -41,7 +44,7 @@ func (s *SafetyDataRepoImpl) List(filter Filter) (resp []model.SafetyData, err e
 	return resp, result.Error
 }
 
-func (s *SafetyDataRepoImpl) InsertOne(safetyData model.SafetyData) (resp model.SafetyData, err error) {
+func (s *SafetyDataRepoImpl) InsertOne(ctx context.Context, safetyData model.SafetyData) (resp model.SafetyData, err error) {
 	user := model.User{ID: safetyData.UserID}
 	result := s.session.First(&user)
 	if result.Error != nil {
@@ -53,10 +56,13 @@ func (s *SafetyDataRepoImpl) InsertOne(safetyData model.SafetyData) (resp model.
 	}
 	safetyData.EncryptArchiveValue = &encryptArchiveValue
 	result = s.session.Create(&safetyData)
+	if result.Error != nil {
+		repository.LogError(ctx.Value(constant.BasicContextKeys.TraceID).(string), result.Error)
+	}
 	return safetyData, result.Error
 }
 
-func (s *SafetyDataRepoImpl) Update(safetyData model.SafetyData, filter Filter) error {
+func (s *SafetyDataRepoImpl) Update(ctx context.Context, safetyData model.SafetyData, filter Filter) error {
 	session := s.session.Model(&model.SafetyData{})
 	if filter.ID > 0 {
 		session = session.Where("id = ?", filter.ID)
@@ -71,6 +77,9 @@ func (s *SafetyDataRepoImpl) Update(safetyData model.SafetyData, filter Filter) 
 		session = session.Where("user_id = ?", filter.UserID)
 	}
 	result := session.Updates(&safetyData)
+	if result.Error != nil {
+		repository.LogError(ctx.Value(constant.BasicContextKeys.TraceID).(string), result.Error)
+	}
 
 	return result.Error
 }

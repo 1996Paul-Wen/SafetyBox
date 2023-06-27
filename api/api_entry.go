@@ -6,18 +6,11 @@ import (
 	"github.com/1996Paul-Wen/SafetyBox/api/handler"
 	"github.com/1996Paul-Wen/SafetyBox/config"
 	logmanager "github.com/1996Paul-Wen/SafetyBox/infrastructure/log_manager"
-	log "github.com/InVisionApp/go-logger"
 	"github.com/gin-gonic/gin"
 )
 
-// apiLogger is the logger handle on api layer. log.Logger is an interface
-var apiLogger log.Logger
-
 // Start the web server
 func StartWebServer() error {
-
-	// 指定当前层次使用的日志
-	apiLogger = logmanager.DefaultLogManager().GatewayLog()
 
 	app := gin.Default()
 	app.RemoveExtraSlash = true
@@ -36,7 +29,7 @@ func initRouter(app *gin.Engine, apiVersion string) {
 	gConf := config.GlobalConfig()
 	baseHandler := handler.NewBaseHandler(
 		apiVersion,
-		apiLogger,
+		logmanager.GatewayLog(),
 		handler.WithLimitSettings(
 			gConf.WebSettings.LimitSettings.Limit, gConf.WebSettings.LimitSettings.Burst,
 		))
@@ -54,11 +47,10 @@ func initRouter(app *gin.Engine, apiVersion string) {
 	apiGroupWithUserVerification := app.Group("/api", userHandler.VerifyUser)
 	// 无需用户身份验证的路由
 	apiGroupWithoutUserVerification := app.Group("/api")
-	{
-		for _, bsHandler := range handler.TotalBusinessHandlers() {
-			bsHandler.RegisterUserRequiredRoutersTo(apiGroupWithUserVerification)
-			bsHandler.RegisterNoUserRequiredRoutersTo(apiGroupWithoutUserVerification)
-		}
+
+	for _, bsHandler := range handler.TotalBusinessHandlers() {
+		bsHandler.RegisterUserRequiredRoutersTo(apiGroupWithUserVerification)
+		bsHandler.RegisterNoUserRequiredRoutersTo(apiGroupWithoutUserVerification)
 	}
 
 }

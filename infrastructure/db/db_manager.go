@@ -2,14 +2,17 @@ package db
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/1996Paul-Wen/SafetyBox/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
-	log "github.com/InVisionApp/go-logger"
+	golog "github.com/InVisionApp/go-logger"
 )
 
 // dbManager 基于Gorm的数据库连接抽象
@@ -18,7 +21,7 @@ type dbManager struct {
 	engine *gorm.DB
 	tables []interface{}
 
-	logger log.Logger
+	logger golog.Logger
 }
 
 func new() *dbManager {
@@ -30,14 +33,14 @@ func Init(conf config.DatabaseConfig, tables []interface{}) {
 	defaultDBManager.config = conf
 	defaultDBManager.engine = newMySQLEngine(conf)
 	defaultDBManager.tables = tables
-	defaultDBManager.logger = log.NewSimple()
+	defaultDBManager.logger = golog.NewSimple()
 }
 
 func (dbManager *dbManager) GetEngine() *gorm.DB {
 	return dbManager.engine
 }
 
-func (dbManager *dbManager) SetLogger(logger log.Logger) {
+func (dbManager *dbManager) SetLogger(logger golog.Logger) {
 	dbManager.logger = logger
 }
 
@@ -105,11 +108,23 @@ func (dbManager *dbManager) StartMonitor() {
 }
 
 func newMySQLEngine(dbConfig config.DatabaseConfig) *gorm.DB {
+	// 设置 GORM 的日志记录器
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold: time.Second, // 慢 SQL 阈值
+			LogLevel:      logger.Info, // Log level
+			Colorful:      true,        // 禁用彩色打印
+		},
+	)
+
 	// `gorm.DB` provides a higher level of abstraction
 	dbEngine, err := gorm.Open(mysql.New(mysql.Config{
 		DSN:               dbConfig.DSN,
 		DefaultStringSize: dbConfig.DefaultStringSize, // string 类型字段的默认长度
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		Logger: newLogger,
+	})
 
 	if err != nil {
 		panic(err)

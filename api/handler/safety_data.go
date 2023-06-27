@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/1996Paul-Wen/SafetyBox/api/proto"
+	"github.com/1996Paul-Wen/SafetyBox/infrastructure/constant"
 	"github.com/1996Paul-Wen/SafetyBox/infrastructure/db"
 	"github.com/1996Paul-Wen/SafetyBox/model"
 	safetydatarepo "github.com/1996Paul-Wen/SafetyBox/repository/safety_data_repo"
@@ -32,7 +33,7 @@ func (s *SafetyDataHandler) RegisterNoUserRequiredRoutersTo(rg *gin.RouterGroup)
 }
 
 func (s *SafetyDataHandler) List(c *gin.Context) {
-	userDetail := c.MustGet(ContextKeys.UserModel).(model.User)
+	userDetail := c.Request.Context().Value(constant.BasicContextKeys.UserModel).(model.User)
 
 	var req = proto.ParamToListMyArchive{}
 	err := s.UnmarshalPost(c, &req)
@@ -50,7 +51,7 @@ func (s *SafetyDataHandler) List(c *gin.Context) {
 		Description: req.Description,
 	}
 	repoImpl := safetydatarepo.NewSafetyDataRepoImpl(tx)
-	safetyData, err := repoImpl.List(filter)
+	safetyData, err := repoImpl.List(c.Request.Context(), filter)
 	if err != nil {
 		s.HandleFailedResponse(c, CodeProcessDataFailed, err)
 		return
@@ -60,7 +61,7 @@ func (s *SafetyDataHandler) List(c *gin.Context) {
 }
 
 func (s *SafetyDataHandler) CreateAchive(c *gin.Context) {
-	userDetail := c.MustGet(ContextKeys.UserModel).(model.User)
+	userDetail := c.Request.Context().Value(constant.BasicContextKeys.UserModel).(model.User)
 
 	var req = proto.ParamToCreateMyNewAchive{}
 	err := s.UnmarshalPost(c, &req)
@@ -78,7 +79,7 @@ func (s *SafetyDataHandler) CreateAchive(c *gin.Context) {
 	tx := db.DefaultDBManager().BeginTransaction()
 	defer tx.Rollback()
 	repoImpl := safetydatarepo.NewSafetyDataRepoImpl(tx)
-	safetyData, err := repoImpl.InsertOne(newArchive)
+	safetyData, err := repoImpl.InsertOne(c.Request.Context(), newArchive)
 	if err != nil {
 		s.HandleFailedResponse(c, CodeProcessDataFailed, err)
 		return

@@ -1,16 +1,14 @@
 package handler
 
-// ContextKeys are keys set in gin.Context
-var ContextKeys = struct {
+// GinContextKeys are keys set in gin.Context.
+// 注意，GinContextKeys负责在gin.Context中存储数据，仅供handler之间透传使用，
+// 而不是在gin.Context.Request.Context()中存储数据
+var GinContextKeys = struct {
 	LoginUser string
 	Password  string
-	UserModel string
-	TraceID   string
 }{
 	LoginUser: "LoginUser",
 	Password:  "Password",
-	UserModel: "UserModel",
-	TraceID:   "TraceID",
 }
 
 const (

@@ -1,6 +1,10 @@
 package safetydatarepo
 
-import "github.com/1996Paul-Wen/SafetyBox/model"
+import (
+	"context"
+
+	"github.com/1996Paul-Wen/SafetyBox/model"
+)
 
 type Filter struct {
 	ID          uint   `json:"id"`
@@ -10,7 +14,7 @@ type Filter struct {
 }
 
 type SafetyDataRepo interface {
-	List(filter Filter) ([]model.SafetyData, error)
-	InsertOne(safetyData model.SafetyData) (model.SafetyData, error)
-	Update(safetyData model.SafetyData, filter Filter) error
+	List(ctx context.Context, filter Filter) ([]model.SafetyData, error)
+	InsertOne(ctx context.Context, safetyData model.SafetyData) (model.SafetyData, error)
+	Update(ctx context.Context, safetyData model.SafetyData, filter Filter) error
 }

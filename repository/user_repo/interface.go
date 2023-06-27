@@ -1,6 +1,10 @@
 package userrepo
 
-import "github.com/1996Paul-Wen/SafetyBox/model"
+import (
+	"context"
+
+	"github.com/1996Paul-Wen/SafetyBox/model"
+)
 
 type UserIDCard struct {
 	ID   uint   `json:"id"`
@@ -14,6 +18,7 @@ type ParamCreateUser struct {
 }
 
 type UserRepo interface {
-	DescribeUser(UserIDCard) (model.User, error)
-	CreateUser(ParamCreateUser) (uint, error)
+	DescribeUser(context.Context, UserIDCard) (model.User, error)
+	CreateUser(context.Context, ParamCreateUser) (uint, error)
+	VerifyUser(ctx context.Context, name, password string) (model.User, error)
 }
